@@ -5,6 +5,7 @@
     <a href="{% url 'new_list' board.id %}" class="btn btn-success">add list</a>
     {% for list in board.list_set.all %}
         <p>{{ list.name }}<a href="{% url 'show_list' list.id %}" class="btn btn-primary">see more</a></p>
+        <a href="{% url "delete_list" list.id %}" class="btn btn-danger">delete list</a>
         <hr>
     {% endfor %}
 {% endblock %}

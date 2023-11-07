@@ -1,97 +1,91 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-
-from website.forms import RegisterForm, BoardForm, ListForm, CardForm
-from website.models import User, Board, List
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from website.api.serializer import *
+from rest_framework.generics import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
 
 
 # Create your views here.
 
 
+@api_view(['GET'])
 def index(request):
     boards = Board.objects.all()
-    context = {
-        "boards": boards
-    }
-    return render(request, "website/home.html", context)
+    serialized_boards = BoardSerializer(boards, many=True)
+    return Response(serialized_boards.data)
 
 
+@api_view(['POST'])
 def register(request):
-    form = RegisterForm()
     if request.method == "POST":
-        form = RegisterForm(data=request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.username = user.username.lower()
-            user.set_password(user.password)
+        user = RegisterSerializer(data=request.data)
+        if user.is_valid():
             user.save()
-            return redirect('home')
-    return render(request, "website/register_form.html", {"form": form})
+            return Response(user.data,
+                            status=status.HTTP_201_CREATED)  # Si ici je me user.data.username une erreure apparait
+    return Response("Something didn't worked out", status=status.HTTP_400_BAD_REQUEST)
 
 
-def login_user(request):
-    if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        try:
-            user = User.objects.get(username=username)
-        except:
-            return redirect('all_messages')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('home')
-    return render(request, 'website/login.html')
-
-
-def logout_user(request):
-    logout(request)
-    return redirect('home')
-
-
-@login_required(login_url='login')
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_board(request):
-    form = BoardForm(request.POST or None)
-    if request.method == "POST":
-        if form.is_valid():
-            board = form.save(commit=False)
-            board.author = request.user
-            board.save()
-            return redirect("home")
-    return render(request, "website/createBoard.html", {"form": form})
+    board = BoardSerializerCreate(data=request.data)
+    if board.is_valid():
+        board.save()
+        return Response(board.data, status=status.HTTP_201_CREATED)
 
 
-@login_required(login_url='login')
+@api_view(['GET'])
 def show_board(request, id):
-    board = Board.objects.get(id=id)
-    return render(request, "website/board.html", {"board": board})
+    board = get_object_or_404(Board, id=id)
+    board = BoardSerializer(board)
+    return Response(board.data, status=status.HTTP_200_OK)
 
 
-@login_required(login_url='login')
-def create_list(request, id):
-    form = ListForm(request.POST or None)
-    if request.method == "POST":
-        if form.is_valid():
-            list = form.save(commit=False)
-            list.board = Board.objects.get(id=id)
-            list.save()
-            return redirect("show_board", id)
-    return render(request, "website/createList.html", {"form": form})
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_list(request):
+    list = ListSerializerCreate(data=request.data)
+    if list.is_valid():
+        list.save()
+        return Response(list.data, status=status.HTTP_201_CREATED)
 
 
-@login_required(login_url='login')
+@api_view(['GET'])
 def show_list(request, id):
-    list = List.objects.get(id=id)
-    return render(request, "website/list.html", {"list": list})
+    list = get_object_or_404(List, id=id)
+    list = ListSerializerCreate(list)
+    return Response(list.data, status=status.HTTP_200_OK)
 
 
-def create_card(request, id):
-    form = CardForm(request.POST or None)
-    if request.method == "POST":
-        if form.is_valid():
-            card = form.save(commit=False)
-            card.list = List.objects.get(id=id)
-            card.save()
-            return redirect("show_list", id)
-    return render(request, "website/createCard.html", {"form":form})
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_list(request, id):
+    List.objects.filter(id=id).delete()
+    return Response("you just deleted a list", status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_card(request):
+    card = CardSerializer(data=request.data)
+    if card.is_valid():
+        return Response(card.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+def show_card(request, id):
+    card = get_object_or_404(Card, id=id)
+    card = CardSerializer(card)
+    return Response(card.data, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_card(request, id):
+    Card.objects.filter(id=id).delete()
+    return Response("you just deleted a card", status=status.HTTP_200_OK)

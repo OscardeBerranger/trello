@@ -3,10 +3,10 @@ from django.forms import Textarea, ModelForm
 from .models import User, Board, List, Card
 
 
-class RegisterForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ["username", "password"]
+# class RegisterForm(forms.ModelForm):
+#     class Meta:
+#         model = User
+#         fields = ["username", "password"]
 
 
 class BoardForm(forms.ModelForm):
@@ -15,10 +15,10 @@ class BoardForm(forms.ModelForm):
         fields = ["name", "description"]
 
 
-class ListForm(forms.ModelForm):
-    class Meta:
-        model = List
-        fields = ["name"]
+# class ListForm(forms.ModelForm):
+#     class Meta:
+#         model = List
+#         fields = ["name"]
 
 
 class CardForm(forms.ModelForm):
