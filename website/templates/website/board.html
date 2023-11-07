@@ -1,0 +1,10 @@
+{% extends "website/base.html" %}
+
+{% block content %}
+    <h1>This page is displaying all list related to {{ board.name }}</h1>
+    <a href="{% url 'new_list' board.id %}" class="btn btn-success">add list</a>
+    {% for list in board.list_set.all %}
+        <p>{{ list.name }}<a href="{% url 'show_list' list.id %}" class="btn btn-primary">see more</a></p>
+        <hr>
+    {% endfor %}
+{% endblock %}

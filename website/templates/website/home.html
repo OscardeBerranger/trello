@@ -1,0 +1,32 @@
+{% extends "website/base.html" %}
+{% block content %}
+
+
+
+    {% if request.user.is_authenticated %}
+        {% if user.board_set.all %}
+            {% else %}
+            <p>You don't have created any board yet</p>
+        {% endif %}
+             {% for board in user.board_set.all %}
+                 <div class="card" style="width: 18rem;">
+                      <div class="card-body">
+                        <h5 class="card-title">{{ board.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ board.author.username }}</h6>
+                        <p class="card-text">{{ board.description }}</p>
+                        <a href="{% url "show_board" board.id %}" class="btn btn-primary">See More</a>
+                        <a href="#" class="btn btn-danger">Delete</a>
+                      </div>
+                 </div>
+            {% endfor %}
+            <a href="{% url "new_board" %}" class="btn btn-success m-3">new board</a>
+        {% else %}
+            <h3>You must be authenticated to display your lists</h3>
+        <a href="{% url "register" %}" class="btn btn-success">register</a>
+        <a href="{% url "login" %}" class="btn btn-success">login</a>
+    {% endif %}
+
+
+
+
+{% endblock %}

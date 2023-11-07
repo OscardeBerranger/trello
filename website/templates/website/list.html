@@ -1,0 +1,12 @@
+{% extends "website/base.html" %}
+
+{% block content %}
+    <a href="{% url "show_board" list.board.id %}" class="btn btn-primary"><--</a>
+    <h1>This page is displaying all postit related to the list {{ list.name }}</h1>
+    <a href="{% url "create_card" list.id %}" class="btn btn-success">create card</a>
+    {% for card in list.card_set.all %}
+        <p>{{ card.name }} </p>
+        <p>{{ card.content }}</p>
+        <hr>
+    {% endfor %}
+{% endblock %}
